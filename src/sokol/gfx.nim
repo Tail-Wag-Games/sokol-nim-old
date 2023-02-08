@@ -43,7 +43,7 @@ type Color* = object
   a*:float32
 
 type
-  Backend* {.size:sizeof(int32).} = enum
+  Backend* {.size:sizeof(uint32).} = enum
     backendGlcore33,
     backendGles2,
     backendGles3,
@@ -55,7 +55,7 @@ type
     backendDummy,
 
 type
-  PixelFormat* {.size:sizeof(int32).} = enum
+  PixelFormat* {.size:sizeof(uint32).} = enum
     pixelFormatDefault,
     pixelFormatNone,
     pixelFormatR8,
@@ -120,6 +120,7 @@ type
     pixelFormatEtc2Rg11,
     pixelFormatEtc2Rg11sn,
     pixelFormatRgb9e5,
+    pixelFormatNum,
 
 type PixelformatInfo* = object
   sample*:bool
@@ -150,7 +151,7 @@ type Limits* = object
   glMaxVertexUniformVectors*:int32
 
 type
-  ResourceState* {.size:sizeof(int32).} = enum
+  ResourceState* {.size:sizeof(uint32).} = enum
     resourceStateInitial,
     resourceStateAlloc,
     resourceStateValid,
@@ -158,65 +159,71 @@ type
     resourceStateInvalid,
 
 type
-  Usage* {.size:sizeof(int32).} = enum
+  Usage* {.size:sizeof(uint32).} = enum
     usageDefault,
     usageImmutable,
     usageDynamic,
     usageStream,
+    usageNum,
 
 type
-  BufferType* {.size:sizeof(int32).} = enum
+  BufferType* {.size:sizeof(uint32).} = enum
     bufferTypeDefault,
     bufferTypeVertexBuffer,
     bufferTypeIndexBuffer,
+    bufferTypeNum,
 
 type
-  IndexType* {.size:sizeof(int32).} = enum
+  IndexType* {.size:sizeof(uint32).} = enum
     indexTypeDefault,
     indexTypeNone,
     indexTypeUint16,
     indexTypeUint32,
+    indexTypeNum,
 
 type
-  ImageType* {.size:sizeof(int32).} = enum
+  ImageType* {.size:sizeof(uint32).} = enum
     imageTypeDefault,
     imageType2d,
     imageTypeCube,
     imageType3d,
     imageTypeArray,
+    imageTypeNum,
 
 type
-  SamplerType* {.size:sizeof(int32).} = enum
+  SamplerType* {.size:sizeof(uint32).} = enum
     samplerTypeDefault,
     samplerTypeFloat,
     samplerTypeSint,
     samplerTypeUint,
 
 type
-  CubeFace* {.size:sizeof(int32).} = enum
+  CubeFace* {.size:sizeof(uint32).} = enum
     cubeFacePosX,
     cubeFaceNegX,
     cubeFacePosY,
     cubeFaceNegY,
     cubeFacePosZ,
     cubeFaceNegZ,
+    cubeFaceNum,
 
 type
-  ShaderStage* {.size:sizeof(int32).} = enum
+  ShaderStage* {.size:sizeof(uint32).} = enum
     shaderStageVs,
     shaderStageFs,
 
 type
-  PrimitiveType* {.size:sizeof(int32).} = enum
+  PrimitiveType* {.size:sizeof(uint32).} = enum
     primitiveTypeDefault,
     primitiveTypePoints,
     primitiveTypeLines,
     primitiveTypeLineStrip,
     primitiveTypeTriangles,
     primitiveTypeTriangleStrip,
+    primitiveTypeNum,
 
 type
-  Filter* {.size:sizeof(int32).} = enum
+  Filter* {.size:sizeof(uint32).} = enum
     filterDefault,
     filterNearest,
     filterLinear,
@@ -224,24 +231,27 @@ type
     filterNearestMipmapLinear,
     filterLinearMipmapNearest,
     filterLinearMipmapLinear,
+    filterNum,
 
 type
-  Wrap* {.size:sizeof(int32).} = enum
+  Wrap* {.size:sizeof(uint32).} = enum
     wrapDefault,
     wrapRepeat,
     wrapClampToEdge,
     wrapClampToBorder,
     wrapMirroredRepeat,
+    wrapNum,
 
 type
-  BorderColor* {.size:sizeof(int32).} = enum
+  BorderColor* {.size:sizeof(uint32).} = enum
     borderColorDefault,
     borderColorTransparentBlack,
     borderColorOpaqueBlack,
     borderColorOpaqueWhite,
+    borderColorNum,
 
 type
-  VertexFormat* {.size:sizeof(int32).} = enum
+  VertexFormat* {.size:sizeof(uint32).} = enum
     vertexFormatInvalid,
     vertexFormatFloat,
     vertexFormatFloat2,
@@ -260,15 +270,17 @@ type
     vertexFormatUint10N2,
     vertexFormatHalf2,
     vertexFormatHalf4,
+    vertexFormatNum,
+    vertexStepNum,
 
 type
-  VertexStep* {.size:sizeof(int32).} = enum
+  VertexStep* {.size:sizeof(uint32).} = enum
     vertexStepDefault,
     vertexStepPerVertex,
     vertexStepPerInstance,
 
 type
-  UniformType* {.size:sizeof(int32).} = enum
+  UniformType* {.size:sizeof(uint32).} = enum
     uniformTypeInvalid,
     uniformTypeFloat,
     uniformTypeFloat2,
@@ -279,28 +291,32 @@ type
     uniformTypeInt3,
     uniformTypeInt4,
     uniformTypeMat4,
+    uniformTypeNum,
 
 type
-  UniformLayout* {.size:sizeof(int32).} = enum
+  UniformLayout* {.size:sizeof(uint32).} = enum
     uniformLayoutDefault,
     uniformLayoutNative,
     uniformLayoutStd140,
+    uniformLayoutNum,
 
 type
-  CullMode* {.size:sizeof(int32).} = enum
+  CullMode* {.size:sizeof(uint32).} = enum
     cullModeDefault,
     cullModeNone,
     cullModeFront,
     cullModeBack,
+    cullModeNum,
 
 type
-  FaceWinding* {.size:sizeof(int32).} = enum
+  FaceWinding* {.size:sizeof(uint32).} = enum
     faceWindingDefault,
     faceWindingCcw,
     faceWindingCw,
+    faceWindingNum,
 
 type
-  CompareFunc* {.size:sizeof(int32).} = enum
+  CompareFunc* {.size:sizeof(uint32).} = enum
     compareFuncDefault,
     compareFuncNever,
     compareFuncLess,
@@ -310,9 +326,10 @@ type
     compareFuncNotEqual,
     compareFuncGreaterEqual,
     compareFuncAlways,
+    compareFuncNum,
 
 type
-  StencilOp* {.size:sizeof(int32).} = enum
+  StencilOp* {.size:sizeof(uint32).} = enum
     stencilOpDefault,
     stencilOpKeep,
     stencilOpZero,
@@ -322,9 +339,10 @@ type
     stencilOpInvert,
     stencilOpIncrWrap,
     stencilOpDecrWrap,
+    stencilOpNum,
 
 type
-  BlendFactor* {.size:sizeof(int32).} = enum
+  BlendFactor* {.size:sizeof(uint32).} = enum
     blendFactorDefault,
     blendFactorZero,
     blendFactorOne,
@@ -341,16 +359,18 @@ type
     blendFactorOneMinusBlendColor,
     blendFactorBlendAlpha,
     blendFactorOneMinusBlendAlpha,
+    blendFactorNum,
 
 type
-  BlendOp* {.size:sizeof(int32).} = enum
+  BlendOp* {.size:sizeof(uint32).} = enum
     blendOpDefault,
     blendOpAdd,
     blendOpSubtract,
     blendOpReverseSubtract,
+    blendOpNum,
 
 type
-  ColorMask* {.size:sizeof(int32).} = enum
+  ColorMask* {.size:sizeof(uint32).} = enum
     colorMaskDefault = 0,
     colorMaskR = 1,
     colorMaskG = 2,
@@ -370,7 +390,7 @@ type
     colorMaskNone = 16,
 
 type
-  Action* {.size:sizeof(int32).} = enum
+  Action* {.size:sizeof(uint32).} = enum
     actionDefault,
     actionClear,
     actionLoad,
@@ -806,357 +826,377 @@ type Desc* = object
   context*:ContextDesc
   endCanary:uint32
 
-proc c_setup(desc:ptr Desc):void {.cdecl, importc:"sg_setup".}
+proc c_setup*(desc:ptr Desc):void {.cdecl, importc:"sg_setup".}
 proc setup*(desc:Desc):void =
     c_setup(unsafeAddr(desc))
 
-proc c_shutdown():void {.cdecl, importc:"sg_shutdown".}
+proc c_shutdown*():void {.cdecl, importc:"sg_shutdown".}
 proc shutdown*():void =
     c_shutdown()
 
-proc c_isvalid():bool {.cdecl, importc:"sg_isvalid".}
+proc c_isvalid*():bool {.cdecl, importc:"sg_isvalid".}
 proc isvalid*():bool =
     c_isvalid()
 
-proc c_resetStateCache():void {.cdecl, importc:"sg_reset_state_cache".}
+proc c_resetStateCache*():void {.cdecl, importc:"sg_reset_state_cache".}
 proc resetStateCache*():void =
     c_resetStateCache()
 
-proc c_installTraceHooks(traceHooks:ptr TraceHooks):TraceHooks {.cdecl, importc:"sg_install_trace_hooks".}
+proc c_installTraceHooks*(traceHooks:ptr TraceHooks):TraceHooks {.cdecl, importc:"sg_install_trace_hooks".}
 proc installTraceHooks*(traceHooks:TraceHooks):TraceHooks =
     c_installTraceHooks(unsafeAddr(trace_hooks))
 
-proc c_pushDebugGroup(name:cstring):void {.cdecl, importc:"sg_push_debug_group".}
+proc c_pushDebugGroup*(name:cstring):void {.cdecl, importc:"sg_push_debug_group".}
 proc pushDebugGroup*(name:cstring):void =
     c_pushDebugGroup(name)
 
-proc c_popDebugGroup():void {.cdecl, importc:"sg_pop_debug_group".}
+proc c_popDebugGroup*():void {.cdecl, importc:"sg_pop_debug_group".}
 proc popDebugGroup*():void =
     c_popDebugGroup()
 
-proc c_addCommitListener(listener:CommitListener):bool {.cdecl, importc:"sg_add_commit_listener".}
+proc c_addCommitListener*(listener:CommitListener):bool {.cdecl, importc:"sg_add_commit_listener".}
 proc addCommitListener*(listener:CommitListener):bool =
     c_addCommitListener(listener)
 
-proc c_removeCommitListener(listener:CommitListener):bool {.cdecl, importc:"sg_remove_commit_listener".}
+proc c_removeCommitListener*(listener:CommitListener):bool {.cdecl, importc:"sg_remove_commit_listener".}
 proc removeCommitListener*(listener:CommitListener):bool =
     c_removeCommitListener(listener)
 
-proc c_makeBuffer(desc:ptr BufferDesc):Buffer {.cdecl, importc:"sg_make_buffer".}
+proc c_makeBuffer*(desc:ptr BufferDesc):Buffer {.cdecl, importc:"sg_make_buffer".}
 proc makeBuffer*(desc:BufferDesc):Buffer =
     c_makeBuffer(unsafeAddr(desc))
 
-proc c_makeImage(desc:ptr ImageDesc):Image {.cdecl, importc:"sg_make_image".}
+proc c_makeImage*(desc:ptr ImageDesc):Image {.cdecl, importc:"sg_make_image".}
 proc makeImage*(desc:ImageDesc):Image =
     c_makeImage(unsafeAddr(desc))
 
-proc c_makeShader(desc:ptr ShaderDesc):Shader {.cdecl, importc:"sg_make_shader".}
+proc c_makeShader*(desc:ptr ShaderDesc):Shader {.cdecl, importc:"sg_make_shader".}
 proc makeShader*(desc:ShaderDesc):Shader =
     c_makeShader(unsafeAddr(desc))
 
-proc c_makePipeline(desc:ptr PipelineDesc):Pipeline {.cdecl, importc:"sg_make_pipeline".}
+proc c_makePipeline*(desc:ptr PipelineDesc):Pipeline {.cdecl, importc:"sg_make_pipeline".}
 proc makePipeline*(desc:PipelineDesc):Pipeline =
     c_makePipeline(unsafeAddr(desc))
 
-proc c_makePass(desc:ptr PassDesc):Pass {.cdecl, importc:"sg_make_pass".}
+proc c_makePass*(desc:ptr PassDesc):Pass {.cdecl, importc:"sg_make_pass".}
 proc makePass*(desc:PassDesc):Pass =
     c_makePass(unsafeAddr(desc))
 
-proc c_destroyBuffer(buf:Buffer):void {.cdecl, importc:"sg_destroy_buffer".}
+proc c_destroyBuffer*(buf:Buffer):void {.cdecl, importc:"sg_destroy_buffer".}
 proc destroyBuffer*(buf:Buffer):void =
     c_destroyBuffer(buf)
 
-proc c_destroyImage(img:Image):void {.cdecl, importc:"sg_destroy_image".}
+proc c_destroyImage*(img:Image):void {.cdecl, importc:"sg_destroy_image".}
 proc destroyImage*(img:Image):void =
     c_destroyImage(img)
 
-proc c_destroyShader(shd:Shader):void {.cdecl, importc:"sg_destroy_shader".}
+proc c_destroyShader*(shd:Shader):void {.cdecl, importc:"sg_destroy_shader".}
 proc destroyShader*(shd:Shader):void =
     c_destroyShader(shd)
 
-proc c_destroyPipeline(pip:Pipeline):void {.cdecl, importc:"sg_destroy_pipeline".}
+proc c_destroyPipeline*(pip:Pipeline):void {.cdecl, importc:"sg_destroy_pipeline".}
 proc destroyPipeline*(pip:Pipeline):void =
     c_destroyPipeline(pip)
 
-proc c_destroyPass(pass:Pass):void {.cdecl, importc:"sg_destroy_pass".}
+proc c_destroyPass*(pass:Pass):void {.cdecl, importc:"sg_destroy_pass".}
 proc destroyPass*(pass:Pass):void =
     c_destroyPass(pass)
 
-proc c_updateBuffer(buf:Buffer, data:ptr Range):void {.cdecl, importc:"sg_update_buffer".}
+proc c_updateBuffer*(buf:Buffer, data:ptr Range):void {.cdecl, importc:"sg_update_buffer".}
 proc updateBuffer*(buf:Buffer, data:Range):void =
     c_updateBuffer(buf, unsafeAddr(data))
 
-proc c_updateImage(img:Image, data:ptr ImageData):void {.cdecl, importc:"sg_update_image".}
+proc c_updateImage*(img:Image, data:ptr ImageData):void {.cdecl, importc:"sg_update_image".}
 proc updateImage*(img:Image, data:ImageData):void =
     c_updateImage(img, unsafeAddr(data))
 
-proc c_appendBuffer(buf:Buffer, data:ptr Range):int32 {.cdecl, importc:"sg_append_buffer".}
+proc c_appendBuffer*(buf:Buffer, data:ptr Range):int32 {.cdecl, importc:"sg_append_buffer".}
 proc appendBuffer*(buf:Buffer, data:Range):int32 =
     c_appendBuffer(buf, unsafeAddr(data))
 
-proc c_queryBufferOverflow(buf:Buffer):bool {.cdecl, importc:"sg_query_buffer_overflow".}
+proc c_queryBufferOverflow*(buf:Buffer):bool {.cdecl, importc:"sg_query_buffer_overflow".}
 proc queryBufferOverflow*(buf:Buffer):bool =
     c_queryBufferOverflow(buf)
 
-proc c_queryBufferWillOverflow(buf:Buffer, size:int):bool {.cdecl, importc:"sg_query_buffer_will_overflow".}
+proc c_queryBufferWillOverflow*(buf:Buffer, size:int):bool {.cdecl, importc:"sg_query_buffer_will_overflow".}
 proc queryBufferWillOverflow*(buf:Buffer, size:int):bool =
     c_queryBufferWillOverflow(buf, size)
 
-proc c_beginDefaultPass(passAction:ptr PassAction, width:int32, height:int32):void {.cdecl, importc:"sg_begin_default_pass".}
+proc c_beginDefaultPass*(passAction:ptr PassAction, width:int32, height:int32):void {.cdecl, importc:"sg_begin_default_pass".}
 proc beginDefaultPass*(passAction:PassAction, width:int32, height:int32):void =
     c_beginDefaultPass(unsafeAddr(pass_action), width, height)
 
-proc c_beginDefaultPassf(passAction:ptr PassAction, width:float32, height:float32):void {.cdecl, importc:"sg_begin_default_passf".}
+proc c_beginDefaultPassf*(passAction:ptr PassAction, width:float32, height:float32):void {.cdecl, importc:"sg_begin_default_passf".}
 proc beginDefaultPassf*(passAction:PassAction, width:float32, height:float32):void =
     c_beginDefaultPassf(unsafeAddr(pass_action), width, height)
 
-proc c_beginPass(pass:Pass, passAction:ptr PassAction):void {.cdecl, importc:"sg_begin_pass".}
+proc c_beginPass*(pass:Pass, passAction:ptr PassAction):void {.cdecl, importc:"sg_begin_pass".}
 proc beginPass*(pass:Pass, passAction:PassAction):void =
     c_beginPass(pass, unsafeAddr(pass_action))
 
-proc c_applyViewport(x:int32, y:int32, width:int32, height:int32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_viewport".}
+proc c_applyViewport*(x:int32, y:int32, width:int32, height:int32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_viewport".}
 proc applyViewport*(x:int32, y:int32, width:int32, height:int32, originTopLeft:bool):void =
     c_applyViewport(x, y, width, height, origin_top_left)
 
-proc c_applyViewportf(x:float32, y:float32, width:float32, height:float32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_viewportf".}
+proc c_applyViewportf*(x:float32, y:float32, width:float32, height:float32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_viewportf".}
 proc applyViewportf*(x:float32, y:float32, width:float32, height:float32, originTopLeft:bool):void =
     c_applyViewportf(x, y, width, height, origin_top_left)
 
-proc c_applyScissorRect(x:int32, y:int32, width:int32, height:int32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_scissor_rect".}
+proc c_applyScissorRect*(x:int32, y:int32, width:int32, height:int32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_scissor_rect".}
 proc applyScissorRect*(x:int32, y:int32, width:int32, height:int32, originTopLeft:bool):void =
     c_applyScissorRect(x, y, width, height, origin_top_left)
 
-proc c_applyScissorRectf(x:float32, y:float32, width:float32, height:float32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_scissor_rectf".}
+proc c_applyScissorRectf*(x:float32, y:float32, width:float32, height:float32, originTopLeft:bool):void {.cdecl, importc:"sg_apply_scissor_rectf".}
 proc applyScissorRectf*(x:float32, y:float32, width:float32, height:float32, originTopLeft:bool):void =
     c_applyScissorRectf(x, y, width, height, origin_top_left)
 
-proc c_applyPipeline(pip:Pipeline):void {.cdecl, importc:"sg_apply_pipeline".}
+proc c_applyPipeline*(pip:Pipeline):void {.cdecl, importc:"sg_apply_pipeline".}
 proc applyPipeline*(pip:Pipeline):void =
     c_applyPipeline(pip)
 
-proc c_applyBindings(bindings:ptr Bindings):void {.cdecl, importc:"sg_apply_bindings".}
+proc c_applyBindings*(bindings:ptr Bindings):void {.cdecl, importc:"sg_apply_bindings".}
 proc applyBindings*(bindings:Bindings):void =
     c_applyBindings(unsafeAddr(bindings))
 
-proc c_applyUniforms(stage:ShaderStage, ubIndex:int32, data:ptr Range):void {.cdecl, importc:"sg_apply_uniforms".}
+proc c_applyUniforms*(stage:ShaderStage, ubIndex:int32, data:ptr Range):void {.cdecl, importc:"sg_apply_uniforms".}
 proc applyUniforms*(stage:ShaderStage, ubIndex:int32, data:Range):void =
     c_applyUniforms(stage, ub_index, unsafeAddr(data))
 
-proc c_draw(baseElement:int32, numElements:int32, numInstances:int32):void {.cdecl, importc:"sg_draw".}
+proc c_draw*(baseElement:int32, numElements:int32, numInstances:int32):void {.cdecl, importc:"sg_draw".}
 proc draw*(baseElement:int32, numElements:int32, numInstances:int32):void =
     c_draw(base_element, num_elements, num_instances)
 
-proc c_endPass():void {.cdecl, importc:"sg_end_pass".}
+proc c_endPass*():void {.cdecl, importc:"sg_end_pass".}
 proc endPass*():void =
     c_endPass()
 
-proc c_commit():void {.cdecl, importc:"sg_commit".}
+proc c_commit*():void {.cdecl, importc:"sg_commit".}
 proc commit*():void =
     c_commit()
 
-proc c_queryDesc():Desc {.cdecl, importc:"sg_query_desc".}
+proc c_queryDesc*():Desc {.cdecl, importc:"sg_query_desc".}
 proc queryDesc*():Desc =
     c_queryDesc()
 
-proc c_queryBackend():Backend {.cdecl, importc:"sg_query_backend".}
+proc c_queryBackend*():Backend {.cdecl, importc:"sg_query_backend".}
 proc queryBackend*():Backend =
     c_queryBackend()
 
-proc c_queryFeatures():Features {.cdecl, importc:"sg_query_features".}
+proc c_queryFeatures*():Features {.cdecl, importc:"sg_query_features".}
 proc queryFeatures*():Features =
     c_queryFeatures()
 
-proc c_queryLimits():Limits {.cdecl, importc:"sg_query_limits".}
+proc c_queryLimits*():Limits {.cdecl, importc:"sg_query_limits".}
 proc queryLimits*():Limits =
     c_queryLimits()
 
-proc c_queryPixelformat(fmt:PixelFormat):PixelformatInfo {.cdecl, importc:"sg_query_pixelformat".}
+proc c_queryPixelformat*(fmt:PixelFormat):PixelformatInfo {.cdecl, importc:"sg_query_pixelformat".}
 proc queryPixelformat*(fmt:PixelFormat):PixelformatInfo =
     c_queryPixelformat(fmt)
 
-proc c_queryBufferState(buf:Buffer):ResourceState {.cdecl, importc:"sg_query_buffer_state".}
+proc c_queryBufferState*(buf:Buffer):ResourceState {.cdecl, importc:"sg_query_buffer_state".}
 proc queryBufferState*(buf:Buffer):ResourceState =
     c_queryBufferState(buf)
 
-proc c_queryImageState(img:Image):ResourceState {.cdecl, importc:"sg_query_image_state".}
+proc c_queryImageState*(img:Image):ResourceState {.cdecl, importc:"sg_query_image_state".}
 proc queryImageState*(img:Image):ResourceState =
     c_queryImageState(img)
 
-proc c_queryShaderState(shd:Shader):ResourceState {.cdecl, importc:"sg_query_shader_state".}
+proc c_queryShaderState*(shd:Shader):ResourceState {.cdecl, importc:"sg_query_shader_state".}
 proc queryShaderState*(shd:Shader):ResourceState =
     c_queryShaderState(shd)
 
-proc c_queryPipelineState(pip:Pipeline):ResourceState {.cdecl, importc:"sg_query_pipeline_state".}
+proc c_queryPipelineState*(pip:Pipeline):ResourceState {.cdecl, importc:"sg_query_pipeline_state".}
 proc queryPipelineState*(pip:Pipeline):ResourceState =
     c_queryPipelineState(pip)
 
-proc c_queryPassState(pass:Pass):ResourceState {.cdecl, importc:"sg_query_pass_state".}
+proc c_queryPassState*(pass:Pass):ResourceState {.cdecl, importc:"sg_query_pass_state".}
 proc queryPassState*(pass:Pass):ResourceState =
     c_queryPassState(pass)
 
-proc c_queryBufferInfo(buf:Buffer):BufferInfo {.cdecl, importc:"sg_query_buffer_info".}
+proc c_queryBufferInfo*(buf:Buffer):BufferInfo {.cdecl, importc:"sg_query_buffer_info".}
 proc queryBufferInfo*(buf:Buffer):BufferInfo =
     c_queryBufferInfo(buf)
 
-proc c_queryImageInfo(img:Image):ImageInfo {.cdecl, importc:"sg_query_image_info".}
+proc c_queryImageInfo*(img:Image):ImageInfo {.cdecl, importc:"sg_query_image_info".}
 proc queryImageInfo*(img:Image):ImageInfo =
     c_queryImageInfo(img)
 
-proc c_queryShaderInfo(shd:Shader):ShaderInfo {.cdecl, importc:"sg_query_shader_info".}
+proc c_queryShaderInfo*(shd:Shader):ShaderInfo {.cdecl, importc:"sg_query_shader_info".}
 proc queryShaderInfo*(shd:Shader):ShaderInfo =
     c_queryShaderInfo(shd)
 
-proc c_queryPipelineInfo(pip:Pipeline):PipelineInfo {.cdecl, importc:"sg_query_pipeline_info".}
+proc c_queryPipelineInfo*(pip:Pipeline):PipelineInfo {.cdecl, importc:"sg_query_pipeline_info".}
 proc queryPipelineInfo*(pip:Pipeline):PipelineInfo =
     c_queryPipelineInfo(pip)
 
-proc c_queryPassInfo(pass:Pass):PassInfo {.cdecl, importc:"sg_query_pass_info".}
+proc c_queryPassInfo*(pass:Pass):PassInfo {.cdecl, importc:"sg_query_pass_info".}
 proc queryPassInfo*(pass:Pass):PassInfo =
     c_queryPassInfo(pass)
 
-proc c_queryBufferDefaults(desc:ptr BufferDesc):BufferDesc {.cdecl, importc:"sg_query_buffer_defaults".}
+proc c_queryBufferDefaults*(desc:ptr BufferDesc):BufferDesc {.cdecl, importc:"sg_query_buffer_defaults".}
 proc queryBufferDefaults*(desc:BufferDesc):BufferDesc =
     c_queryBufferDefaults(unsafeAddr(desc))
 
-proc c_queryImageDefaults(desc:ptr ImageDesc):ImageDesc {.cdecl, importc:"sg_query_image_defaults".}
+proc c_queryImageDefaults*(desc:ptr ImageDesc):ImageDesc {.cdecl, importc:"sg_query_image_defaults".}
 proc queryImageDefaults*(desc:ImageDesc):ImageDesc =
     c_queryImageDefaults(unsafeAddr(desc))
 
-proc c_queryShaderDefaults(desc:ptr ShaderDesc):ShaderDesc {.cdecl, importc:"sg_query_shader_defaults".}
+proc c_queryShaderDefaults*(desc:ptr ShaderDesc):ShaderDesc {.cdecl, importc:"sg_query_shader_defaults".}
 proc queryShaderDefaults*(desc:ShaderDesc):ShaderDesc =
     c_queryShaderDefaults(unsafeAddr(desc))
 
-proc c_queryPipelineDefaults(desc:ptr PipelineDesc):PipelineDesc {.cdecl, importc:"sg_query_pipeline_defaults".}
+proc c_queryPipelineDefaults*(desc:ptr PipelineDesc):PipelineDesc {.cdecl, importc:"sg_query_pipeline_defaults".}
 proc queryPipelineDefaults*(desc:PipelineDesc):PipelineDesc =
     c_queryPipelineDefaults(unsafeAddr(desc))
 
-proc c_queryPassDefaults(desc:ptr PassDesc):PassDesc {.cdecl, importc:"sg_query_pass_defaults".}
+proc c_queryPassDefaults*(desc:ptr PassDesc):PassDesc {.cdecl, importc:"sg_query_pass_defaults".}
 proc queryPassDefaults*(desc:PassDesc):PassDesc =
     c_queryPassDefaults(unsafeAddr(desc))
 
-proc c_allocBuffer():Buffer {.cdecl, importc:"sg_alloc_buffer".}
+proc c_allocBuffer*():Buffer {.cdecl, importc:"sg_alloc_buffer".}
 proc allocBuffer*():Buffer =
     c_allocBuffer()
 
-proc c_allocImage():Image {.cdecl, importc:"sg_alloc_image".}
+proc c_allocImage*():Image {.cdecl, importc:"sg_alloc_image".}
 proc allocImage*():Image =
     c_allocImage()
 
-proc c_allocShader():Shader {.cdecl, importc:"sg_alloc_shader".}
+proc c_allocShader*():Shader {.cdecl, importc:"sg_alloc_shader".}
 proc allocShader*():Shader =
     c_allocShader()
 
-proc c_allocPipeline():Pipeline {.cdecl, importc:"sg_alloc_pipeline".}
+proc c_allocPipeline*():Pipeline {.cdecl, importc:"sg_alloc_pipeline".}
 proc allocPipeline*():Pipeline =
     c_allocPipeline()
 
-proc c_allocPass():Pass {.cdecl, importc:"sg_alloc_pass".}
+proc c_allocPass*():Pass {.cdecl, importc:"sg_alloc_pass".}
 proc allocPass*():Pass =
     c_allocPass()
 
-proc c_deallocBuffer(buf:Buffer):void {.cdecl, importc:"sg_dealloc_buffer".}
+proc c_deallocBuffer*(buf:Buffer):void {.cdecl, importc:"sg_dealloc_buffer".}
 proc deallocBuffer*(buf:Buffer):void =
     c_deallocBuffer(buf)
 
-proc c_deallocImage(img:Image):void {.cdecl, importc:"sg_dealloc_image".}
+proc c_deallocImage*(img:Image):void {.cdecl, importc:"sg_dealloc_image".}
 proc deallocImage*(img:Image):void =
     c_deallocImage(img)
 
-proc c_deallocShader(shd:Shader):void {.cdecl, importc:"sg_dealloc_shader".}
+proc c_deallocShader*(shd:Shader):void {.cdecl, importc:"sg_dealloc_shader".}
 proc deallocShader*(shd:Shader):void =
     c_deallocShader(shd)
 
-proc c_deallocPipeline(pip:Pipeline):void {.cdecl, importc:"sg_dealloc_pipeline".}
+proc c_deallocPipeline*(pip:Pipeline):void {.cdecl, importc:"sg_dealloc_pipeline".}
 proc deallocPipeline*(pip:Pipeline):void =
     c_deallocPipeline(pip)
 
-proc c_deallocPass(pass:Pass):void {.cdecl, importc:"sg_dealloc_pass".}
+proc c_deallocPass*(pass:Pass):void {.cdecl, importc:"sg_dealloc_pass".}
 proc deallocPass*(pass:Pass):void =
     c_deallocPass(pass)
 
-proc c_initBuffer(buf:Buffer, desc:ptr BufferDesc):void {.cdecl, importc:"sg_init_buffer".}
+proc c_initBuffer*(buf:Buffer, desc:ptr BufferDesc):void {.cdecl, importc:"sg_init_buffer".}
 proc initBuffer*(buf:Buffer, desc:BufferDesc):void =
     c_initBuffer(buf, unsafeAddr(desc))
 
-proc c_initImage(img:Image, desc:ptr ImageDesc):void {.cdecl, importc:"sg_init_image".}
+proc c_initImage*(img:Image, desc:ptr ImageDesc):void {.cdecl, importc:"sg_init_image".}
 proc initImage*(img:Image, desc:ImageDesc):void =
     c_initImage(img, unsafeAddr(desc))
 
-proc c_initShader(shd:Shader, desc:ptr ShaderDesc):void {.cdecl, importc:"sg_init_shader".}
+proc c_initShader*(shd:Shader, desc:ptr ShaderDesc):void {.cdecl, importc:"sg_init_shader".}
 proc initShader*(shd:Shader, desc:ShaderDesc):void =
     c_initShader(shd, unsafeAddr(desc))
 
-proc c_initPipeline(pip:Pipeline, desc:ptr PipelineDesc):void {.cdecl, importc:"sg_init_pipeline".}
+proc c_initPipeline*(pip:Pipeline, desc:ptr PipelineDesc):void {.cdecl, importc:"sg_init_pipeline".}
 proc initPipeline*(pip:Pipeline, desc:PipelineDesc):void =
     c_initPipeline(pip, unsafeAddr(desc))
 
-proc c_initPass(pass:Pass, desc:ptr PassDesc):void {.cdecl, importc:"sg_init_pass".}
+proc c_initPass*(pass:Pass, desc:ptr PassDesc):void {.cdecl, importc:"sg_init_pass".}
 proc initPass*(pass:Pass, desc:PassDesc):void =
     c_initPass(pass, unsafeAddr(desc))
 
-proc c_uninitBuffer(buf:Buffer):void {.cdecl, importc:"sg_uninit_buffer".}
+proc c_uninitBuffer*(buf:Buffer):void {.cdecl, importc:"sg_uninit_buffer".}
 proc uninitBuffer*(buf:Buffer):void =
     c_uninitBuffer(buf)
 
-proc c_uninitImage(img:Image):void {.cdecl, importc:"sg_uninit_image".}
+proc c_uninitImage*(img:Image):void {.cdecl, importc:"sg_uninit_image".}
 proc uninitImage*(img:Image):void =
     c_uninitImage(img)
 
-proc c_uninitShader(shd:Shader):void {.cdecl, importc:"sg_uninit_shader".}
+proc c_uninitShader*(shd:Shader):void {.cdecl, importc:"sg_uninit_shader".}
 proc uninitShader*(shd:Shader):void =
     c_uninitShader(shd)
 
-proc c_uninitPipeline(pip:Pipeline):void {.cdecl, importc:"sg_uninit_pipeline".}
+proc c_uninitPipeline*(pip:Pipeline):void {.cdecl, importc:"sg_uninit_pipeline".}
 proc uninitPipeline*(pip:Pipeline):void =
     c_uninitPipeline(pip)
 
-proc c_uninitPass(pass:Pass):void {.cdecl, importc:"sg_uninit_pass".}
+proc c_uninitPass*(pass:Pass):void {.cdecl, importc:"sg_uninit_pass".}
 proc uninitPass*(pass:Pass):void =
     c_uninitPass(pass)
 
-proc c_failBuffer(buf:Buffer):void {.cdecl, importc:"sg_fail_buffer".}
+proc c_failBuffer*(buf:Buffer):void {.cdecl, importc:"sg_fail_buffer".}
 proc failBuffer*(buf:Buffer):void =
     c_failBuffer(buf)
 
-proc c_failImage(img:Image):void {.cdecl, importc:"sg_fail_image".}
+proc c_failImage*(img:Image):void {.cdecl, importc:"sg_fail_image".}
 proc failImage*(img:Image):void =
     c_failImage(img)
 
-proc c_failShader(shd:Shader):void {.cdecl, importc:"sg_fail_shader".}
+proc c_failShader*(shd:Shader):void {.cdecl, importc:"sg_fail_shader".}
 proc failShader*(shd:Shader):void =
     c_failShader(shd)
 
-proc c_failPipeline(pip:Pipeline):void {.cdecl, importc:"sg_fail_pipeline".}
+proc c_failPipeline*(pip:Pipeline):void {.cdecl, importc:"sg_fail_pipeline".}
 proc failPipeline*(pip:Pipeline):void =
     c_failPipeline(pip)
 
-proc c_failPass(pass:Pass):void {.cdecl, importc:"sg_fail_pass".}
+proc c_failPass*(pass:Pass):void {.cdecl, importc:"sg_fail_pass".}
 proc failPass*(pass:Pass):void =
     c_failPass(pass)
 
-proc c_setupContext():Context {.cdecl, importc:"sg_setup_context".}
+proc c_setupContext*():Context {.cdecl, importc:"sg_setup_context".}
 proc setupContext*():Context =
     c_setupContext()
 
-proc c_activateContext(ctxId:Context):void {.cdecl, importc:"sg_activate_context".}
+proc c_activateContext*(ctxId:Context):void {.cdecl, importc:"sg_activate_context".}
 proc activateContext*(ctxId:Context):void =
     c_activateContext(ctx_id)
 
-proc c_discardContext(ctxId:Context):void {.cdecl, importc:"sg_discard_context".}
+proc c_discardContext*(ctxId:Context):void {.cdecl, importc:"sg_discard_context".}
 proc discardContext*(ctxId:Context):void =
     c_discardContext(ctx_id)
 
-proc c_d3d11Device():pointer {.cdecl, importc:"sg_d3d11_device".}
+proc c_d3d11Device*():pointer {.cdecl, importc:"sg_d3d11_device".}
 proc d3d11Device*():pointer =
     c_d3d11Device()
 
-proc c_mtlDevice():pointer {.cdecl, importc:"sg_mtl_device".}
+proc c_mtlDevice*():pointer {.cdecl, importc:"sg_mtl_device".}
 proc mtlDevice*():pointer =
     c_mtlDevice()
 
-proc c_mtlRenderCommandEncoder():pointer {.cdecl, importc:"sg_mtl_render_command_encoder".}
+proc c_mtlRenderCommandEncoder*():pointer {.cdecl, importc:"sg_mtl_render_command_encoder".}
 proc mtlRenderCommandEncoder*():pointer =
     c_mtlRenderCommandEncoder()
+
+proc c_setBufferUsedFrame*(bufId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_buffer_used_frame".}
+proc setBufferUsedFrame*(bufId: uint32; usedFrame: int64) =
+  c_setBufferUsedFrame(bufId, usedFrame)
+
+proc c_setPipelineUsedFrame*(pipId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_pipeline_used_frame".}
+proc setPipelineUsedFrame*(pipId: uint32; usedFrame: int64) =
+  c_setPipelineUsedFrame(pipId, usedFrame)
+
+proc c_setImageUsedFrame*(imgId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_image_used_frame".}
+proc setImageUsedFrame*(imgId: uint32; usedFrame: int64) =
+  c_setImageUsedFrame(imgId, usedFrame)
+
+proc c_setPassUsedFrame*(passId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_pass_used_frame".}
+proc setPassUsedFrame*(passId: uint32; usedFrame: int64) =
+  c_setPassUsedFrame(passId, usedFrame)
+
+proc c_mapBuffer*(bufId: Buffer; offset: int32; data: ptr Range) {.cdecl, importc: "sg_map_buffer".}
+proc mapBuffer*(bufId: Buffer; offset: int32; data: Range) =
+  c_mapBuffer(bufId, offset, unsafeAddr(data))
 
 when defined gl:
   const gl*    = true

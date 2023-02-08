@@ -2845,6 +2845,13 @@ SOKOL_GFX_API_DECL const void* sg_mtl_device(void);
 /* Metal: return __bridge-casted MTLRenderCommandEncoder in current pass (or zero if outside pass) */
 SOKOL_GFX_API_DECL const void* sg_mtl_render_command_encoder(void);
 
+/* FRAG related extensions */
+SOKOL_GFX_API_DECL void sg_set_buffer_used_frame(uint32_t buf_id, int64_t used_frame);
+SOKOL_GFX_API_DECL void sg_set_pipeline_used_frame(uint32_t pip_id, int64_t used_frame);
+SOKOL_GFX_API_DECL void sg_set_image_used_frame(uint32_t img_id, int64_t used_frame);
+SOKOL_GFX_API_DECL void sg_set_pass_used_frame(uint32_t pass_id, int64_t used_frame);
+SOKOL_GFX_API_DECL void sg_map_buffer(sg_buffer buf_id, int offset, const sg_range* data);
+
 #ifdef __cplusplus
 } /* extern "C" */
 
@@ -3474,8 +3481,10 @@ typedef struct {
     sg_usage usage;
     uint32_t update_frame_index;
     uint32_t append_frame_index;
+    uint32_t map_frame_index;
     int num_slots;
     int active_slot;
+    int64_t used_frame;
 } _sg_buffer_common_t;
 
 _SOKOL_PRIVATE void _sg_buffer_common_init(_sg_buffer_common_t* cmn, const sg_buffer_desc* desc) {
@@ -3510,6 +3519,7 @@ typedef struct {
     uint32_t upd_frame_index;
     int num_slots;
     int active_slot;
+    int64_t used_frame;
 } _sg_image_common_t;
 
 _SOKOL_PRIVATE void _sg_image_common_init(_sg_image_common_t* cmn, const sg_image_desc* desc) {
@@ -3552,6 +3562,7 @@ typedef struct {
 
 typedef struct {
     _sg_shader_stage_t stage[SG_NUM_SHADER_STAGES];
+    int64_t used_frame;
 } _sg_shader_common_t;
 
 _SOKOL_PRIVATE void _sg_shader_common_init(_sg_shader_common_t* cmn, const sg_shader_desc* desc) {
@@ -3593,6 +3604,7 @@ typedef struct {
     float depth_bias_slope_scale;
     float depth_bias_clamp;
     sg_color blend_color;
+    int64_t used_frame;
 } _sg_pipeline_common_t;
 
 _SOKOL_PRIVATE void _sg_pipeline_common_init(_sg_pipeline_common_t* cmn, const sg_pipeline_desc* desc) {
@@ -3625,6 +3637,7 @@ typedef struct {
     int num_color_atts;
     _sg_pass_attachment_common_t color_atts[SG_MAX_COLOR_ATTACHMENTS];
     _sg_pass_attachment_common_t ds_att;
+    int64_t used_frame;
 } _sg_pass_common_t;
 
 _SOKOL_PRIVATE void _sg_pass_common_init(_sg_pass_common_t* cmn, const sg_pass_desc* desc) {
@@ -16847,6 +16860,62 @@ SOKOL_API_IMPL const void* sg_mtl_render_command_encoder(void) {
     #else
         return 0;
     #endif
+}
+
+SOKOL_API_IMPL void sg_set_buffer_used_frame(uint32_t buf_id, int64_t used_frame) {
+    SOKOL_ASSERT(_sg.valid);
+    _sg_buffer_t* _buff = _sg_lookup_buffer(&_sg.pools, buf_id);
+    _buff->cmn.used_frame = used_frame;
+}
+
+SOKOL_API_IMPL void sg_set_pipeline_used_frame(uint32_t pip_id, int64_t used_frame) {
+    SOKOL_ASSERT(_sg.valid);
+    _sg_pipeline_t* _pip = _sg_lookup_pipeline(&_sg.pools, pip_id);
+    _pip->cmn.used_frame =_pip->shader->cmn.used_frame = used_frame;
+}
+
+SOKOL_API_IMPL void sg_set_image_used_frame(uint32_t img_id, int64_t used_frame) {
+    SOKOL_ASSERT(_sg.valid);
+    _sg_image_t* _img = _sg_lookup_image(&_sg.pools, img_id);
+    _img->cmn.used_frame = used_frame;
+}
+
+SOKOL_API_IMPL void sg_set_pass_used_frame(uint32_t pass_id, int64_t used_frame) {
+    SOKOL_ASSERT(_sg.valid);
+    _sg_pass_t* _pass = _sg_lookup_pass(&_sg.pools, pass_id);
+    _pass->cmn.used_frame = used_frame;
+}
+
+SOKOL_API_IMPL void sg_map_buffer(sg_buffer buf_id, int offset, const sg_range* data)
+{
+    _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, buf_id.id);
+    if (buf) {
+        /* rewind append cursor in a new frame */
+        if (buf->cmn.map_frame_index != _sg.frame_index) {
+            buf->cmn.append_pos = 0;
+            buf->cmn.append_overflow = false;
+        }
+
+        if ((offset + data->size) > buf->cmn.size) {
+            buf->cmn.append_overflow = true;
+        }
+
+        if (buf->slot.state == SG_RESOURCESTATE_VALID) {
+            buf->cmn.append_pos = offset;    // alter append_pos, so we write at offset
+            if (_sg_validate_append_buffer(buf, data)) {
+                if (!buf->cmn.append_overflow && (data->size > 0)) {
+                    /* update and append and map on same buffer in same frame not allowed */
+                    SOKOL_ASSERT(buf->cmn.update_frame_index != _sg.frame_index);
+                    SOKOL_ASSERT(buf->cmn.append_frame_index != _sg.frame_index);
+                    _sg_append_buffer(buf, data,
+                                      buf->cmn.map_frame_index != _sg.frame_index);
+                    buf->cmn.map_frame_index = _sg.frame_index;
+                }
+            }
+        }
+    } else {
+        SOKOL_ASSERT(0);
+    }
 }
 
 #ifdef _MSC_VER
