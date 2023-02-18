@@ -25,11 +25,12 @@ type Range* = object
 
 const
   invalidId* = 0
-  numShaderStages* = 2
+  numShaderStages* = 3
   numInflightFrames* = 2
   maxColorAttachments* = 4
   maxShaderstageBuffers* = 8
   maxShaderstageImages* = 12
+  maxShaderstageUavs* = 8
   maxShaderstageUbs* = 4
   maxUbMembers* = 16
   maxVertexAttributes* = 16
@@ -80,7 +81,6 @@ type
     pixelFormatRg16si,
     pixelFormatRg16f,
     pixelFormatRgba8,
-    pixelFormatSrgb8a8,
     pixelFormatRgba8sn,
     pixelFormatRgba8ui,
     pixelFormatRgba8si,
@@ -120,6 +120,7 @@ type
     pixelFormatEtc2Rg11,
     pixelFormatEtc2Rg11sn,
     pixelFormatRgb9e5,
+    pixelFormatNum,
 
 type PixelformatInfo* = object
   sample*:bool
@@ -128,6 +129,7 @@ type PixelformatInfo* = object
   blend*:bool
   msaa*:bool
   depth*:bool
+  uav*:bool
 
 type Features* = object
   instancing*:bool
@@ -139,6 +141,7 @@ type Features* = object
   imageClampToBorder*:bool
   mrtIndependentBlendState*:bool
   mrtIndependentWriteMask*:bool
+  computeShaders*: bool
 
 type Limits* = object
   maxImageSize2d*:int32
@@ -163,12 +166,18 @@ type
     usageImmutable,
     usageDynamic,
     usageStream,
+    usageNum,
 
 type
   BufferType* {.size:sizeof(int32).} = enum
     bufferTypeDefault,
     bufferTypeVertexBuffer,
     bufferTypeIndexBuffer,
+    bufferTypeRaw,
+    bufferTypeStructured,
+    bufferTypeIndirect,
+    bufferTypeAtomicCounter,
+    bufferTypeNum,
 
 type
   IndexType* {.size:sizeof(int32).} = enum
@@ -176,6 +185,7 @@ type
     indexTypeNone,
     indexTypeUint16,
     indexTypeUint32,
+    indexTypeNum,
 
 type
   ImageType* {.size:sizeof(int32).} = enum
@@ -184,6 +194,7 @@ type
     imageTypeCube,
     imageType3d,
     imageTypeArray,
+    imageTypeNum,
 
 type
   SamplerType* {.size:sizeof(int32).} = enum
@@ -200,11 +211,13 @@ type
     cubeFaceNegY,
     cubeFacePosZ,
     cubeFaceNegZ,
+    cubeFaceNum,
 
 type
   ShaderStage* {.size:sizeof(int32).} = enum
     shaderStageVs,
     shaderStageFs,
+    shaderStageCs,
 
 type
   PrimitiveType* {.size:sizeof(int32).} = enum
@@ -214,6 +227,7 @@ type
     primitiveTypeLineStrip,
     primitiveTypeTriangles,
     primitiveTypeTriangleStrip,
+    primitiveTypeNum,
 
 type
   Filter* {.size:sizeof(int32).} = enum
@@ -224,6 +238,7 @@ type
     filterNearestMipmapLinear,
     filterLinearMipmapNearest,
     filterLinearMipmapLinear,
+    filterNum,
 
 type
   Wrap* {.size:sizeof(int32).} = enum
@@ -232,6 +247,7 @@ type
     wrapClampToEdge,
     wrapClampToBorder,
     wrapMirroredRepeat,
+    wrapNum,
 
 type
   BorderColor* {.size:sizeof(int32).} = enum
@@ -239,6 +255,7 @@ type
     borderColorTransparentBlack,
     borderColorOpaqueBlack,
     borderColorOpaqueWhite,
+    borderColorNum,
 
 type
   VertexFormat* {.size:sizeof(int32).} = enum
@@ -258,14 +275,14 @@ type
     vertexFormatShort4n,
     vertexFormatUshort4n,
     vertexFormatUint10N2,
-    vertexFormatHalf2,
-    vertexFormatHalf4,
+    vertexFormatNum,
 
 type
   VertexStep* {.size:sizeof(int32).} = enum
     vertexStepDefault,
     vertexStepPerVertex,
     vertexStepPerInstance,
+    vertexStepNum,
 
 type
   UniformType* {.size:sizeof(int32).} = enum
@@ -279,12 +296,14 @@ type
     uniformTypeInt3,
     uniformTypeInt4,
     uniformTypeMat4,
+    uniformTypeNum,
 
 type
   UniformLayout* {.size:sizeof(int32).} = enum
     uniformLayoutDefault,
     uniformLayoutNative,
     uniformLayoutStd140,
+    uniformLayoutNum,
 
 type
   CullMode* {.size:sizeof(int32).} = enum
@@ -292,12 +311,14 @@ type
     cullModeNone,
     cullModeFront,
     cullModeBack,
+    cullModeNum,
 
 type
   FaceWinding* {.size:sizeof(int32).} = enum
     faceWindingDefault,
     faceWindingCcw,
     faceWindingCw,
+    faceWindingNum,
 
 type
   CompareFunc* {.size:sizeof(int32).} = enum
@@ -310,6 +331,7 @@ type
     compareFuncNotEqual,
     compareFuncGreaterEqual,
     compareFuncAlways,
+    compareFuncNum,
 
 type
   StencilOp* {.size:sizeof(int32).} = enum
@@ -322,6 +344,7 @@ type
     stencilOpInvert,
     stencilOpIncrWrap,
     stencilOpDecrWrap,
+    stencilOpNum,
 
 type
   BlendFactor* {.size:sizeof(int32).} = enum
@@ -341,6 +364,7 @@ type
     blendFactorOneMinusBlendColor,
     blendFactorBlendAlpha,
     blendFactorOneMinusBlendAlpha,
+    blendFactorNum,
 
 type
   BlendOp* {.size:sizeof(int32).} = enum
@@ -348,6 +372,7 @@ type
     blendOpAdd,
     blendOpSubtract,
     blendOpReverseSubtract,
+    blendOpNum,
 
 type
   ColorMask* {.size:sizeof(int32).} = enum
@@ -375,6 +400,7 @@ type
     actionClear,
     actionLoad,
     actionDontCare,
+    actionNum,
 
 type ColorAttachmentAction* = object
   action*:Action
@@ -407,6 +433,12 @@ type Bindings* = object
   indexBufferOffset*:int32
   vsImages*:array[12, Image]
   fsImages*:array[12, Image]
+  csImages*:array[12, Image]
+  vsBuffers*:array[8, Buffer]
+  fsBuffers*:array[8, Buffer]
+  csBuffers*:array[8, Buffer]
+  csImageUavs*:array[12, Image]
+  csBufferUavs*:array[8, Buffer]
   endCanary:uint32
 
 converter toBindingsvertexBuffers*[N:static[int]](items: array[N, Buffer]): array[8, Buffer] =
@@ -428,8 +460,10 @@ converter toBindingsfsImages*[N:static[int]](items: array[N, Image]): array[12, 
 type BufferDesc* = object
   startCanary:uint32
   size*:int
+  stride*:int32
   `type`*:BufferType
   usage*:Usage
+  shaderWrite*: bool
   data*:Range
   label*:cstring
   glBuffers*:array[2, uint32]
@@ -460,6 +494,7 @@ type ImageDesc* = object
   startCanary:uint32
   `type`*:ImageType
   renderTarget*:bool
+  shaderWrite*: bool
   width*:int32
   height*:int32
   numSlices*:int32
@@ -539,10 +574,11 @@ type ShaderDesc* = object
   attrs*:array[16, ShaderAttrDesc]
   vs*:ShaderStageDesc
   fs*:ShaderStageDesc
+  cs*:ShaderStageDesc
   label*:cstring
   endCanary:uint32
 
-converter toShaderDescattrs*[N:static[int]](items: array[N, ShaderAttrDesc]): array[16, ShaderAttrDesc] =
+converter toShaderAttrDesc*[N:static[int]](items: array[N, ShaderAttrDesc]): array[16, ShaderAttrDesc] =
   static: assert(N < 16)
   for index,item in items.pairs: result[index]=item
 
@@ -622,7 +658,7 @@ type PipelineDesc* = object
   label*:cstring
   endCanary:uint32
 
-converter toPipelineDesccolors*[N:static[int]](items: array[N, ColorState]): array[4, ColorState] =
+converter toPipelineDescColors*[N:static[int]](items: array[N, ColorState]): array[4, ColorState] =
   static: assert(N < 4)
   for index,item in items.pairs: result[index]=item
 
@@ -946,6 +982,18 @@ proc c_draw*(baseElement:int32, numElements:int32, numInstances:int32):void {.cd
 proc draw*(baseElement:int32, numElements:int32, numInstances:int32):void =
     c_draw(base_element, num_elements, num_instances)
 
+proc c_dispatch*(threadGroupX:int32, threadGroupY:int32, threadGroupZ:int32):void {.cdecl, importc:"sg_dispatch".}
+proc dispatch*(threadGroupX:int32, threadGroupY:int32, threadGroupZ:int32):void =
+    c_dispatch(threadGroupX, threadGroupY, threadGroupZ)
+
+proc c_dispatch_indirect*(buf: Buffer; offset: int32):void {.cdecl, importc:"sg_dispatch_indirect".}
+proc dispatch_indirect*(buf: Buffer; offset: int32):void =
+    c_dispatch_indirect(buf, offset)
+
+proc c_draw_indexed_instanced_indirect*(buf: Buffer; offset: int32):void {.cdecl, importc:"sg_draw_indexed_instanced_indirect".}
+proc draw_indexed_instanced_indirect*(buf: Buffer; offset: int32):void =
+    c_draw_indexed_instanced_indirect(buf, offset)
+
 proc c_endPass*():void {.cdecl, importc:"sg_end_pass".}
 proc endPass*():void =
     c_endPass()
@@ -1166,15 +1214,15 @@ proc c_setPipelineUsedFrame*(pipId: uint32; usedFrame: int64) {.cdecl, importc: 
 proc setPipelineUsedFrame*(pipId: uint32; usedFrame: int64) =
   c_setPipelineUsedFrame(pipId, usedFrame)
 
-proc c_setImageUsedFrame*(imgId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_image_used_frame".}
-proc setImageUsedFrame*(imgId: uint32; usedFrame: int64) =
-  c_setImageUsedFrame(imgId, usedFrame)
-
 proc c_setPassUsedFrame*(passId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_pass_used_frame".}
 proc setPassUsedFrame*(passId: uint32; usedFrame: int64) =
   c_setPassUsedFrame(passId, usedFrame)
 
-proc c_mapBuffer*(bufId: Buffer; offset: int32; data: ptr Range) {.cdecl, importc: "sg_map_buffer".}
+proc c_setImageUsedFrame*(imgId: uint32; usedFrame: int64) {.cdecl, importc: "sg_set_image_used_frame".}
+proc setImageUsedFrame*(imgId: uint32; usedFrame: int64) =
+  c_setImageUsedFrame(imgId, usedFrame)
+
+proc c_mapBuffer(bufId: Buffer; offset: int32; data: ptr Range) {.cdecl, importc: "sg_map_buffer".}
 proc mapBuffer*(bufId: Buffer; offset: int32; data: Range) =
   c_mapBuffer(bufId, offset, unsafeAddr(data))
 
@@ -1196,7 +1244,7 @@ elif defined linux:
   const metal* = false
 else:
   error("unsupported platform")
-
+{.passC: "-DSOKOL_DEBUG".}
 when defined windows:
   when not defined vcc:
     {.passl:"-lkernel32 -luser32 -lshell32 -lgdi32".}
