@@ -1222,9 +1222,9 @@ proc c_setImageUsedFrame*(imgId: uint32; usedFrame: int64) {.cdecl, importc: "sg
 proc setImageUsedFrame*(imgId: uint32; usedFrame: int64) =
   c_setImageUsedFrame(imgId, usedFrame)
 
-proc c_mapBuffer(bufId: Buffer; offset: int32; data: ptr Range) {.cdecl, importc: "sg_map_buffer".}
-proc mapBuffer*(bufId: Buffer; offset: int32; data: Range) =
-  c_mapBuffer(bufId, offset, unsafeAddr(data))
+proc c_mapImage*(imgId: Image; offset: int32; data: ptr Range; append: int32) {.cdecl, importc: "sg_map_image".}
+proc mapImage*(imgId: Image; offset: int32; data: Range; append: int32) =
+  c_mapImage(imgId, offset, unsafeAddr(data), append)
 
 when defined gl:
   const gl*    = true

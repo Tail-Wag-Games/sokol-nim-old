@@ -2506,6 +2506,9 @@ typedef struct sg_buffer_info {
 typedef struct sg_image_info {
     sg_slot_info slot;              /* resource pool slot info */
     uint32_t upd_frame_index;       /* frame index of last sg_update_image() */
+    uint32_t append_frame_index;    /* frame index of last sg_append_image() */
+    int append_pos;                 /* current position in image for sg_append_image() */
+    bool append_overflow;           /* is image in overflow state (due to sg_append_image) */
     int num_slots;                  /* number of renaming-slots for dynamically updated images */
     int active_slot;                /* currently active write-slot for dynamically updated images */
     int width;                      /* image width */
@@ -2866,7 +2869,8 @@ SOKOL_GFX_API_DECL void sg_set_buffer_used_frame(uint32_t buf_id, int64_t used_f
 SOKOL_GFX_API_DECL void sg_set_image_used_frame(uint32_t img_id, int64_t used_frame);
 SOKOL_GFX_API_DECL void sg_set_pass_used_frame(uint32_t pass_id, int64_t used_frame);
 SOKOL_GFX_API_DECL void sg_set_pipeline_used_frame(uint32_t pip_id, int64_t used_frame);
-SOKOL_GFX_API_DECL void sg_map_buffer(sg_buffer buf_id, int offset, const sg_range* data);
+SOKOL_GFX_API_DECL void sg_map_buffer(sg_buffer buf_id, int offset, const sg_range* data, int append);
+SOKOL_GFX_API_DECL void sg_map_image(sg_image img_id, int offset, const sg_range* data, int append);
 
 #ifdef __cplusplus
 } /* extern "C" */
@@ -3537,6 +3541,8 @@ typedef struct {
     sg_border_color border_color;
     uint32_t max_anisotropy;
     uint32_t upd_frame_index;
+    uint32_t append_frame_index;
+    uint32_t map_frame_index;
     int num_slots;
     int active_slot;
     int64_t used_frame;
@@ -9184,6 +9190,7 @@ _SOKOL_PRIVATE sg_resource_state _sg_d3d11_create_buffer(_sg_buffer_t* buf, cons
         }
         else if (desc->data.ptr && (buf->cmn.type == SG_BUFFERTYPE_RAW || buf->cmn.type == SG_BUFFERTYPE_STRUCTURED)) {
             SOKOL_ASSERT(desc->data.ptr);
+            d3d11_desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
             init_data.pSysMem = desc->data.ptr;
             init_data_ptr = &init_data;            
         }
@@ -10524,6 +10531,24 @@ _SOKOL_PRIVATE int _sg_d3d11_append_buffer(_sg_buffer_t* buf, const sg_range* da
         _sg_d3d11_Unmap(_sg.d3d11.ctx, (ID3D11Resource*)buf->d3d11.buf, 0);
     } else {
         SG_LOG("failed to map buffer while appending!\n");
+    }
+    /* NOTE: this alignment is a requirement from WebGPU, but we want identical behaviour across all backend */
+    return _sg_roundup((int)data->size, 4);
+}
+
+_SOKOL_PRIVATE int _sg_d3d11_map_image(_sg_image_t* img, sg_range* data, bool new_frame) {
+    SOKOL_ASSERT(img && data && data->ptr && (data->size > 0));
+    SOKOL_ASSERT(_sg.d3d11.ctx);
+    SOKOL_ASSERT(img->d3d11.tex2d);
+    D3D11_MAP map_type = D3D11_MAP_READ;
+    D3D11_MAPPED_SUBRESOURCE d3d11_msr;
+    HRESULT hr = _sg_d3d11_Map(_sg.d3d11.ctx, (ID3D11Resource*)img->d3d11.tex2d, 0, map_type, 0, &d3d11_msr);
+    if (SUCCEEDED(hr)) {
+        const uint8_t* src_ptr = (uint8_t*)d3d11_msr.pData; // + buf->cmn.append_pos;
+        memcpy(data->ptr, src_ptr, data->size);
+        _sg_d3d11_Unmap(_sg.d3d11.ctx, (ID3D11Resource*)img->d3d11.tex2d, 0);
+    } else {
+        SG_LOG("failed to map image!\n");
     }
     /* NOTE: this alignment is a requirement from WebGPU, but we want identical behaviour across all backend */
     return _sg_roundup((int)data->size, 4);
@@ -14586,6 +14611,22 @@ static inline int _sg_append_buffer(_sg_buffer_t* buf, const sg_range* data, boo
     #endif
 }
 
+static inline int _sg_map_image(_sg_image_t* img, const sg_range* data, bool new_frame) {
+    #if defined(_SOKOL_ANY_GL)
+    return _sg_gl_append_buffer(buf, data, new_frame);
+    #elif defined(SOKOL_METAL)
+    return _sg_mtl_append_buffer(buf, data, new_frame);
+    #elif defined(SOKOL_D3D11)
+    return _sg_d3d11_map_image(img, data, new_frame);
+    #elif defined(SOKOL_WGPU)
+    return _sg_wgpu_append_buffer(buf, data, new_frame);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_append_buffer(buf, data, new_frame);
+    #else
+    #error("INVALID BACKEND");
+    #endif
+}
+
 static inline void _sg_update_image(_sg_image_t* img, const sg_image_data* data) {
     #if defined(_SOKOL_ANY_GL)
     _sg_gl_update_image(img, data);
@@ -17632,31 +17673,72 @@ SOKOL_API_IMPL void sg_set_pipeline_used_frame(uint32_t pip_id, int64_t used_fra
     _pip->cmn.used_frame =_pip->shader->cmn.used_frame = used_frame;
 }
 
-SOKOL_API_IMPL void sg_map_buffer(sg_buffer buf_id, int offset, const sg_range* data)
+SOKOL_API_IMPL void sg_map_buffer(sg_buffer buf_id, int offset, const sg_range* data, int append)
 {
     _sg_buffer_t* buf = _sg_lookup_buffer(&_sg.pools, buf_id.id);
     if (buf) {
         /* rewind append cursor in a new frame */
-        if (buf->cmn.map_frame_index != _sg.frame_index) {
+        if (append && buf->cmn.map_frame_index != _sg.frame_index) {
             buf->cmn.append_pos = 0;
             buf->cmn.append_overflow = false;
         }
 
-        if ((offset + data->size) > buf->cmn.size) {
+        if (append && (offset + data->size) > buf->cmn.size) {
             buf->cmn.append_overflow = true;
         }
 
         if (buf->slot.state == SG_RESOURCESTATE_VALID) {
-            buf->cmn.append_pos = offset;    // alter append_pos, so we write at offset
-            if (_sg_validate_append_buffer(buf, data)) {
-                if (!buf->cmn.append_overflow && (data->size > 0)) {
-                    /* update and append and map on same buffer in same frame not allowed */
-                    SOKOL_ASSERT(buf->cmn.update_frame_index != _sg.frame_index);
-                    SOKOL_ASSERT(buf->cmn.append_frame_index != _sg.frame_index);
-                    _sg_append_buffer(buf, data,
-                                      buf->cmn.map_frame_index != _sg.frame_index);
-                    buf->cmn.map_frame_index = _sg.frame_index;
+            if (append) {
+                buf->cmn.append_pos = offset;    // alter append_pos, so we write at offset
+                if (_sg_validate_append_buffer(buf, data)) {
+                    if (!buf->cmn.append_overflow && (data->size > 0)) {
+                        /* update and append and map on same buffer in same frame not allowed */
+                        SOKOL_ASSERT(buf->cmn.update_frame_index != _sg.frame_index);
+                        SOKOL_ASSERT(buf->cmn.append_frame_index != _sg.frame_index);
+                        _sg_append_buffer(buf, data,
+                                        buf->cmn.map_frame_index != _sg.frame_index);
+                        buf->cmn.map_frame_index = _sg.frame_index;
+                    }
                 }
+            } else {
+                // if (offset < buf->cmn.size)  {
+                //     _sg_map_buffer(buf, data,
+                //                         buf->cmn.map_frame_index != _sg.frame_index);
+                //         buf->cmn.map_frame_index = _sg.frame_index;
+                // }
+            }
+        }
+    } else {
+        SOKOL_ASSERT(0);
+    }
+}
+
+SOKOL_API_IMPL void sg_map_image(sg_image img_id, int offset, const sg_range* data, int append)
+{
+    _sg_image_t* img = _sg_lookup_image(&_sg.pools, img_id.id);
+    if (img) {
+        /* rewind append cursor in a new frame */
+        // if (append && img->cmn.map_frame_index != _sg.frame_index) {
+        //     img->cmn.append_pos = 0;
+        //     img->cmn.append_overflow = false;
+        // }
+
+        if (img->slot.state == SG_RESOURCESTATE_VALID) {
+            if (append) {
+                // buf->cmn.append_pos = offset;    // alter append_pos, so we write at offset
+                // if (_sg_validate_append_buffer(buf, data)) {
+                //     if (!buf->cmn.append_overflow && (data->size > 0)) {
+                //         /* update and append and map on same buffer in same frame not allowed */
+                //         SOKOL_ASSERT(buf->cmn.update_frame_index != _sg.frame_index);
+                //         SOKOL_ASSERT(buf->cmn.append_frame_index != _sg.frame_index);
+                //         _sg_append_buffer(buf, data,
+                //                         buf->cmn.map_frame_index != _sg.frame_index);
+                //         buf->cmn.map_frame_index = _sg.frame_index;
+                //     }
+                // }
+            } else {
+                _sg_map_image(img, data, img->cmn.map_frame_index != _sg.frame_index);
+                img->cmn.map_frame_index = _sg.frame_index;
             }
         }
     } else {
