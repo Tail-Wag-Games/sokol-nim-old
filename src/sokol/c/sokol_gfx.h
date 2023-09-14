@@ -5931,7 +5931,8 @@ _SOKOL_PRIVATE void _sg_dummy_update_image(_sg_image_t* img, const sg_image_data
     _SG_XMACRO(glSamplerParameteri,               void, (GLuint sampler, GLenum pname, GLint param)) \
     _SG_XMACRO(glSamplerParameterf,               void, (GLuint sampler, GLenum pname, GLfloat param)) \
     _SG_XMACRO(glSamplerParameterfv,              void, (GLuint sampler, GLenum pname, const GLfloat* params)) \
-    _SG_XMACRO(glDeleteSamplers,                  void, (GLsizei n, const GLuint* samplers))
+    _SG_XMACRO(glDeleteSamplers,                  void, (GLsizei n, const GLuint* samplers)) \
+    _SG_XMACRO(glGenerateMipmap,                  void, (GLenum target))
 
 // generate GL function pointer typedefs
 #define _SG_XMACRO(name, ret, args) typedef ret (GL_APIENTRY* PFN_ ## name) args;
@@ -7215,7 +7216,12 @@ _SOKOL_PRIVATE sg_resource_state _sg_gl_create_image(_sg_image_t* img, const sg_
                     }
                 }
             }
+
             _sg_gl_cache_restore_texture_sampler_binding(0);
+
+            if (img->cmn.render_target && (img->cmn.num_mipmaps > 1)) {
+                glGenerateMipmap(GL_TEXTURE_2D);   
+            }
         }
     }
     _SG_GL_CHECK_ERROR();
@@ -8121,7 +8127,15 @@ _SOKOL_PRIVATE void _sg_gl_apply_bindings(
                 const GLenum gl_tgt = img->gl.target;
                 const GLuint gl_tex = img->gl.tex[img->cmn.active_slot];
                 const GLuint gl_smp = smp->gl.smp;
-                _sg_gl_cache_bind_texture_sampler(gl_tex_slot, gl_tgt, gl_tex, gl_smp);
+
+                SOKOL_ASSERT((gl_shd_img->gl_tex_slot != -1) && gl_tex);
+                _sg_gl_cache_bind_texture_sampler(gl_shd_img->gl_tex_slot, img->gl.target, gl_tex);
+                if (img->cmn.render_target && (img->cmn.num_mipmaps > 1)) {
+                    if (img->cmn.upd_frame_index != _sg.frame_index) {
+                        glGenerateMipmap(GL_TEXTURE_2D);
+                        img->cmn.upd_frame_index = _sg.frame_index;
+                    }
+                }
             }
         }
     }

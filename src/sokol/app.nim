@@ -643,8 +643,11 @@ elif defined macosx:
     {.passc:"-DSOKOL_METAL".}
     {.passl:"-framework Metal -framework MetalKit".}
 elif defined linux:
-  {.passc:"-DSOKOL_GLCORE33".}
-  {.passl:"-lX11 -lXi -lXcursor -lGL -lm -ldl -lpthread".}
+  when defined emscripten:
+    {.passc: "-DSOKOL_GLES3".}
+  else:
+    {.passc:"-DSOKOL_GLCORE33".}
+    {.passl:"-lX11 -lXi -lXcursor -lGL -lm -ldl -lpthread".}
 else:
   error("unsupported platform")
 
