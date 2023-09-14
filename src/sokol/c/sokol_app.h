@@ -1405,6 +1405,7 @@ typedef struct sapp_event {
     int window_height;
     int framebuffer_width;              // = window_width * dpi_scale
     int framebuffer_height;             // = window_height * dpi_scale
+    void* native_event;
 } sapp_event;
 
 /*
@@ -2785,6 +2786,7 @@ typedef struct {
     char window_title[_SAPP_MAX_TITLE_LENGTH];      /* UTF-8 */
     wchar_t window_title_wide[_SAPP_MAX_TITLE_LENGTH];   /* UTF-32 or UCS-2 */
     sapp_keycode keycodes[SAPP_MAX_KEYCODES];
+    void* native_event;
 } _sapp_t;
 static _sapp_t _sapp;
 
@@ -3053,6 +3055,7 @@ _SOKOL_PRIVATE void _sapp_init_event(sapp_event_type type) {
     _sapp.event.window_height = _sapp.window_height;
     _sapp.event.framebuffer_width = _sapp.framebuffer_width;
     _sapp.event.framebuffer_height = _sapp.framebuffer_height;
+    _sapp.event.native_event = _sapp.native_event;
     _sapp.event.mouse_x = _sapp.mouse.x;
     _sapp.event.mouse_y = _sapp.mouse.y;
     _sapp.event.mouse_dx = _sapp.mouse.dx;
@@ -7724,6 +7727,7 @@ _SOKOL_PRIVATE void _sapp_win32_run(const sapp_desc* desc) {
     while (!(done || _sapp.quit_ordered)) {
         _sapp_win32_timing_measure();
         MSG msg;
+        _sapp.native_event = &msg;
         while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
             if (WM_QUIT == msg.message) {
                 done = true;
@@ -10911,6 +10915,7 @@ _SOKOL_PRIVATE void _sapp_linux_run(const sapp_desc* desc) {
         int count = XPending(_sapp.x11.display);
         while (count--) {
             XEvent event;
+            _sapp.native_event = &event;
             XNextEvent(_sapp.x11.display, &event);
             _sapp_x11_process_event(&event);
         }
